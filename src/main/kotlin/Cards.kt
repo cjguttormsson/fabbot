@@ -1,10 +1,12 @@
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 
+// Database bindings for cards.db, which contains the table of cards used to respond to queries
 object Cards : Table() {
     val setCode = char("set_code", 3)
     val setIndex = integer("set_index").check("CHECK_SET_INDEX") { it.greaterEq(0) }
@@ -14,7 +16,9 @@ object Cards : Table() {
 
     override val primaryKey = PrimaryKey(setCode, setIndex)
 
-    fun init() {
+    val allNames by lazy { transaction { selectAll().map { it[name] } } }
+
+    init {
         Database.connect("jdbc:sqlite:file:cards.db", "org.sqlite.JDBC")
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
         transaction {
