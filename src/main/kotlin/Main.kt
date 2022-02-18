@@ -2,7 +2,6 @@ import Cards.allNames
 import com.willowtreeapps.fuzzywuzzy.diffutils.FuzzySearch
 
 fun main() {
-    println(allNames.sumOf { it.length + 4 } + allNames.size * 4)
     println(FuzzySearch.extractOne("wax on", allNames))
 
     println(FuzzySearch.extractOne("Ride the Tailwind", allNames))

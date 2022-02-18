@@ -19,6 +19,7 @@ dependencies {
     implementation("dev.kord:kord-core:0.8.0-M9")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
     implementation("com.willowtreeapps:fuzzywuzzy-kotlin:0.9.0")
 }
