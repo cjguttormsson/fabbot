@@ -1,5 +1,3 @@
-import com.willowtreeapps.fuzzywuzzy.diffutils.FuzzySearch
-
 fun main() {
     listOf(
         "wax on",

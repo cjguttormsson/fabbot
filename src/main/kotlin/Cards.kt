@@ -48,6 +48,8 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
     val pitchValue by Cards.pitchValue
     val imageId by Cards.imageId
 
+    val imageUrl by lazy { "https://storage.googleapis.com/fabmaster/media/images/$imageId.width-450.png" }
+
     override fun toString() =
         "$setCode$setIndex: $name${this.pitchValue?.let { " (%d)".format(it) } ?: ""}"
 }
