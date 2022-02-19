@@ -1,4 +1,4 @@
-FROM openjdk:19-jdk
+FROM gradle:latest
 
 COPY . .
 
