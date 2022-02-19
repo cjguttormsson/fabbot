@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.assertContentEquals
 import kotlin.test.assertNull
 
-/** Tests for the Card class. */
+/** Tests for the Card.kt */
 internal class CardTest {
     companion object {
         @JvmStatic

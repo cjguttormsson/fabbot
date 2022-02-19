@@ -12,6 +12,8 @@ import java.lang.System.getenv
 // Regexes used to parse incoming queries
 val bracket_pattern = Regex("""\[\[([^]\[]+)]]""") // matches any text in [[double brackets]]
 val query_pitch_values = mapOf("r" to 1, "red" to 1, "y" to 2, "yellow" to 2, "b" to 3, "blue" to 3)
+
+// Maps used to handle pitch value reactions
 val pitch_value_to_reaction_emoji = mapOf(
     1 to ReactionEmoji.Unicode("\uD83D\uDD34"),
     2 to ReactionEmoji.Unicode("\uD83D\uDFE1"),
