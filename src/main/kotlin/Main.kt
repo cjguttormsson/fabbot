@@ -17,6 +17,8 @@ fun main() {
         "tailwinds",
         "tome of"
     ).forEach {
-        println("$it\t-> ${Card.searchByName(it)}")
+        println("${"%20s".format(it)} -> ${Card.search(it)}")
     }
+    listOf(null, 1, 2, 3).forEach { println("${"%20s".format(it)} -> ${Card.search("wax on", it)}") }
+    println(Card.search("bravold"))
 }

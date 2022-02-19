@@ -3,10 +3,7 @@ import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
@@ -35,9 +32,12 @@ object Cards : IdTable<String>() {
 
 class Card(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, Card>(Cards) {
-        fun searchByName(query: String) = transaction {
+        // Finds the card with the closest name to the `query` string, and optionally with the
+        // specified pitch value.
+        fun search(query: String, pitch: Int? = null) = transaction {
             find {
-                Cards.name eq (FuzzySearch.extractOne(query, Cards.allNames).string ?: "")
+                (Cards.name eq (FuzzySearch.extractOne(query, Cards.allNames).string
+                    ?: "")) and (booleanLiteral(pitch == null) or (Cards.pitchValue eq pitch))
             }.firstOrNull()
         }
     }
@@ -51,5 +51,5 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
     val imageUrl by lazy { "https://storage.googleapis.com/fabmaster/media/images/$imageId.width-450.png" }
 
     override fun toString() =
-        "$setCode$setIndex: $name${this.pitchValue?.let { " (%d)".format(it) } ?: ""}"
+        "$setCode${"%03d".format(setIndex)}: $name${this.pitchValue?.let { " (%d)".format(it) } ?: ""}"
 }

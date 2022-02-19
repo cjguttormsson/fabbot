@@ -15,6 +15,7 @@ repositories {
 
 val exposedVersion: String by project
 dependencies {
+    implementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testImplementation(kotlin("test"))
     implementation("dev.kord:kord-core:0.8.0-M9")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
