@@ -4,6 +4,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /** Tests for the Card class. */
 internal class CardTest {
@@ -73,5 +75,25 @@ internal class CardTest {
     @Test
     fun `toString() matches expected format`() {
         assertEquals("EVR051: Wax On (2)", Card.search("Wax On", 2)?.toString())
+    }
+
+    @Test
+    fun `hasOtherPitchValues() is true for regular commons and rares`() {
+        assertTrue(Card.search("Wax On")!!.hasOtherPitchValues())
+    }
+
+    @Test
+    fun `hasOtherPitchValues() is false for commons and rares that only come in one pitch`() {
+        assertFalse(Card.search("Talisman of Balance")!!.hasOtherPitchValues())
+    }
+
+    @Test
+    fun `hasOtherPitchValues() is false for unusual commons and rares`() {
+        assertFalse(Card.search("Herald of Judgement")!!.hasOtherPitchValues())
+    }
+
+    @Test
+    fun `hasOtherPitchValues() is false for cards that aren't common or rare`() {
+        assertFalse(Card.search("Bingo")!!.hasOtherPitchValues())
     }
 }

@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 
-// Database bindings for cards.db, which contains the table of cards used to respond to queries
+/** Database bindings for cards.db, which contains the table of cards used to respond to queries */
 object Cards : IdTable<String>() {
     val setCode = char("set_code", 3)
     val setIndex = integer("set_index").check("CHECK_SET_INDEX") { it.greaterEq(0) }
@@ -27,9 +27,11 @@ object Cards : IdTable<String>() {
         }
     }
 
-    val allNames by lazy { transaction { selectAll().map { it[name] } } }
+    // All unique card names (cards with multiple pitch values only appear once)
+    val allNames by lazy { transaction { selectAll().map { it[name] } }.toSet() }
 }
 
+/** A Flesh and Blood card, as stored in the database defined by Cards. */
 class Card(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, Card>(Cards) {
         // Finds the card with the closest name to the `query` string, and optionally with the
@@ -42,14 +44,20 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
         }
     }
 
-    val setCode by Cards.setCode
-    val setIndex by Cards.setIndex
-    val name by Cards.name
-    val pitchValue by Cards.pitchValue
-    val imageId by Cards.imageId
+    val setCode by Cards.setCode // eg. "EVR"
+    val setIndex by Cards.setIndex // eg. 50
+    val name by Cards.name // eg. "Wax On"
+    val pitchValue by Cards.pitchValue // eg. 1
+    val imageId by Cards.imageId // eg. "EVR050"
 
+    // The official image source from LSS
     val imageUrl by lazy { "https://storage.googleapis.com/fabmaster/media/images/$imageId.width-450.png" }
 
+    // Some cards specify a pitch value even though they only come in one, eg. MON007: Herald of Judgement
+    fun hasOtherPitchValues() =
+        pitchValue != null && transaction { Cards.select { Cards.name eq name }.count() > 1 }
+
+    // A name that includes the set code and pitch, eg. "EVR050: Wax On (1)" or "MON002: Prism"
     override fun toString() =
         "$setCode${"%03d".format(setIndex)}: $name${this.pitchValue?.let { " (%d)".format(it) } ?: ""}"
 }

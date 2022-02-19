@@ -20,5 +20,5 @@ fun main() {
         println("${"%20s".format(it)} -> ${Card.search(it)}")
     }
     listOf(null, 1, 2, 3).forEach { println("${"%20s".format(it)} -> ${Card.search("wax on", it)}") }
-    println(Card.search("bravold"))
+    println(Card.search("Bingo")?.hasOtherPitchValues())
 }
