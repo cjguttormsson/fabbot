@@ -4,4 +4,6 @@ COPY . .
 
 RUN ./gradlew build
 
+COPY . .
+
 CMD ["./gradlew", "run"]
