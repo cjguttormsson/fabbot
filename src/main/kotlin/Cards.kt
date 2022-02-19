@@ -8,13 +8,16 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection
 
+val image_url_pattern =
+    Regex("https://storage.googleapis.com/fabmaster/media/images/(.+?).width-450.png")
+
 /** Database bindings for cards.db, which contains the table of cards used to respond to queries */
 object Cards : IdTable<String>() {
     val setCode = char("set_code", 3)
     val setIndex = integer("set_index").check("CHECK_SET_INDEX") { it.greaterEq(0) }
     val name = text("name").index("INDEX_NAME") // with pitch value suffix (eg. "(3)") removed
     val pitchValue = integer("pitch_value").check("CHECK_PITCH") { it.between(1, 3) }.nullable()
-    val imageId = text("image_id")
+    val imageId = text("image_id").index("INDEX_IMAGE_ID")
 
     override val primaryKey = PrimaryKey(setCode, setIndex)
     override val id: Column<EntityID<String>> = imageId.entityId()
@@ -41,6 +44,11 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
                 (Cards.name eq (FuzzySearch.extractOne(query, Cards.allNames).string
                     ?: "")) and (booleanLiteral(pitch == null) or (Cards.pitchValue eq pitch))
             }.first()
+        }
+
+        // Gets the card that has the same imageUrl as url
+        fun fromImageUrl(url: String) = image_url_pattern.find(url)?.groups?.get(1)?.value?.let {
+            transaction { Card[it] }
         }
     }
 
