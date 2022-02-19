@@ -5,9 +5,7 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.assertContentEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /** Tests for the Card class. */
 internal class CardTest {
@@ -80,26 +78,6 @@ internal class CardTest {
     }
 
     @Test
-    fun `hasOtherPitchValues() is true for regular commons and rares`() {
-        assertTrue(Card.search("Wax On").hasOtherPitchValues())
-    }
-
-    @Test
-    fun `hasOtherPitchValues() is false for commons and rares that only come in one pitch`() {
-        assertFalse(Card.search("Talisman of Balance").hasOtherPitchValues())
-    }
-
-    @Test
-    fun `hasOtherPitchValues() is false for unusual commons and rares`() {
-        assertFalse(Card.search("Herald of Judgement").hasOtherPitchValues())
-    }
-
-    @Test
-    fun `hasOtherPitchValues() is false for cards that aren't common or rare`() {
-        assertFalse(Card.search("Bingo").hasOtherPitchValues())
-    }
-
-    @Test
     fun `pitchVariations() returns yellow and blue versions of red card`() {
         assertContentEquals(listOf(2, 3),
             Card.search("Wax On", 1).pitchVariations().map { it.pitchValue })
@@ -115,6 +93,16 @@ internal class CardTest {
     fun `pitchVariations() returns red and yellow versions of blue card`() {
         assertContentEquals(listOf(1, 2),
             Card.search("Wax On", 3).pitchVariations().map { it.pitchValue })
+    }
+
+    @Test
+    fun `pitchVariations() returns nothing for card with no variations`() {
+        assertContentEquals(listOf(), Card.search("Bingo").pitchVariations())
+    }
+
+    @Test
+    fun `pitchVariations() returns nothing for card with pitch value but no variations`() {
+        assertContentEquals(listOf(), Card.search("Parable of Humility").pitchVariations())
     }
 
     @Test

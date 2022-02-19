@@ -75,7 +75,7 @@ suspend fun main() {
 // Turns a query into a name and a pitch value (if specified). eg. "Wax On y" -> Pair("Wax On", y)
 private fun parseQuery(query: String): Pair<String, Int?> =
     query_pitch_values.firstNotNullOfOrNull { entry ->
-        if (query.endsWith(entry.key)) Pair(
+        if (query.lowercase().endsWith(entry.key)) Pair(
             query.substring(0, query.length - entry.key.length).trim(), entry.value
         )
         else null

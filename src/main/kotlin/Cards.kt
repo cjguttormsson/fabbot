@@ -22,6 +22,7 @@ object Cards : IdTable<String>() {
     override val primaryKey = PrimaryKey(setCode, setIndex)
     override val id: Column<EntityID<String>> = imageId.entityId()
 
+    // Connect to cards.db
     init {
         Database.connect("jdbc:sqlite:file:cards.db", "org.sqlite.JDBC")
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
@@ -60,10 +61,6 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
 
     // The official image source from LSS
     val imageUrl by lazy { "https://storage.googleapis.com/fabmaster/media/images/$imageId.width-450.png" }
-
-    // Some cards specify a pitch value even though they only come in one, eg. MON007: Herald of Judgement
-    fun hasOtherPitchValues() =
-        pitchValue != null && transaction { Cards.select { Cards.name eq name }.count() > 1 }
 
     // Returns the set of cards with the same name, but a different pitch value
     fun pitchVariations() = transaction {
