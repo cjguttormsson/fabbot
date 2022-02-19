@@ -40,7 +40,7 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
             find {
                 (Cards.name eq (FuzzySearch.extractOne(query, Cards.allNames).string
                     ?: "")) and (booleanLiteral(pitch == null) or (Cards.pitchValue eq pitch))
-            }.firstOrNull()
+            }.first()
         }
     }
 
@@ -56,6 +56,11 @@ class Card(id: EntityID<String>) : Entity<String>(id) {
     // Some cards specify a pitch value even though they only come in one, eg. MON007: Herald of Judgement
     fun hasOtherPitchValues() =
         pitchValue != null && transaction { Cards.select { Cards.name eq name }.count() > 1 }
+
+    // Returns the set of cards with the same name, but a different pitch value
+    fun pitchVariations() = transaction {
+        Card.find { (Cards.name eq name) and (Cards.pitchValue neq pitchValue) }.toSet()
+    }
 
     // A name that includes the set code and pitch, eg. "EVR050: Wax On (1)" or "MON002: Prism"
     override fun toString() =
