@@ -1,3 +1,6 @@
+import com.willowtreeapps.fuzzywuzzy.diffutils.FuzzySearch
+import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
@@ -28,4 +31,23 @@ object Cards : IdTable<String>() {
     }
 
     val allNames by lazy { transaction { selectAll().map { it[name] } } }
+}
+
+class Card(id: EntityID<String>) : Entity<String>(id) {
+    companion object : EntityClass<String, Card>(Cards) {
+        fun searchByName(query: String) = transaction {
+            find {
+                Cards.name eq (FuzzySearch.extractOne(query, Cards.allNames).string ?: "")
+            }.firstOrNull()
+        }
+    }
+
+    val setCode by Cards.setCode
+    val setIndex by Cards.setIndex
+    val name by Cards.name
+    val pitchValue by Cards.pitchValue
+    val imageId by Cards.imageId
+
+    override fun toString() =
+        "$setCode$setIndex: $name${this.pitchValue?.let { " (%d)".format(it) } ?: ""}"
 }

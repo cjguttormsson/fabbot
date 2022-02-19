@@ -19,6 +19,6 @@ fun main() {
         "tailwinds",
         "tome of"
     ).forEach {
-        println("$it\t-> ${FuzzySearch.extractOne(it, Cards.allNames)}")
+        println("$it\t-> ${Card.searchByName(it)}")
     }
 }
