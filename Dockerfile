@@ -2,6 +2,6 @@ FROM openjdk:19-jdk
 
 COPY . .
 
-RUN ./gradlew test
+RUN ./gradlew build
 
 CMD ["./gradlew", "run"]
