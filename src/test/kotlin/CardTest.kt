@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** Tests for the Card class. */
@@ -114,5 +115,26 @@ internal class CardTest {
     fun `pitchVariations() returns red and yellow versions of blue card`() {
         assertContentEquals(listOf(1, 2),
             Card.search("Wax On", 3).pitchVariations().map { it.pitchValue })
+    }
+
+    @Test
+    fun `Card from standard image URL`() {
+        assertEquals(
+            Card.fromImageUrl("https://storage.googleapis.com/fabmaster/media/images/EVR156.width-450.png")
+                .toString(), "EVR156: Bingo"
+        )
+    }
+
+    @Test
+    fun `Card from unusual image URL`() {
+        assertEquals(
+            Card.fromImageUrl("https://storage.googleapis.com/fabmaster/media/images/16984263482378r4623792.width-450.png")
+                .toString(), "MON011: Parable of Humility (2)"
+        )
+    }
+
+    @Test
+    fun `Card from bad image URL`() {
+        assertNull(Card.fromImageUrl("https://www.fabtcg.com/"))
     }
 }

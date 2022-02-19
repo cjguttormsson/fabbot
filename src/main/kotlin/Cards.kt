@@ -17,7 +17,7 @@ object Cards : IdTable<String>() {
     val setIndex = integer("set_index").check("CHECK_SET_INDEX") { it.greaterEq(0) }
     val name = text("name").index("INDEX_NAME") // with pitch value suffix (eg. "(3)") removed
     val pitchValue = integer("pitch_value").check("CHECK_PITCH") { it.between(1, 3) }.nullable()
-    val imageId = text("image_id").index("INDEX_IMAGE_ID")
+    val imageId = text("image_id")
 
     override val primaryKey = PrimaryKey(setCode, setIndex)
     override val id: Column<EntityID<String>> = imageId.entityId()
