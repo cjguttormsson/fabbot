@@ -1,9 +1,11 @@
-FROM gradle:latest
+FROM openjdk:19-jdk
 
 COPY . .
 
 RUN ./gradlew build
+RUN ./gradlew installDist
+RUN unzip ./build/distributions/fabbot-1.0-SNAPSHOT.zip
 
-COPY . .
+COPY ./build/distributions/fabbot-1.0-SNAPSHOT ./output
 
-CMD ["./gradlew", "run"]
+CMD ["./output/bin/fabbot"]
