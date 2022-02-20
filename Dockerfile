@@ -1,4 +1,4 @@
-FROM openjdk:19-jdk
+FROM openjdk:19-jdk-buster
 
 COPY . .
 
