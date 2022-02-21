@@ -47,12 +47,20 @@ suspend fun main() {
                 // Reply with the image of the card
                 val (name, pitch) = QueryParser.parseToEnd(it)
                 println("Searching name=$name pitch=$pitch")
-                val card = Card.search(name, pitch)
-                val reply = message.reply { content = card.imageUrl }
 
-                // Add reactions for other pitch values of the same card, if there are any
-                card.pitchVariations().forEach { variant ->
-                    reply.addReaction(pitch_value_to_reaction_emoji[variant.pitchValue]!!)
+                try {
+                    val card = Card.search(name, pitch)
+                    val reply = message.reply { content = card.imageUrl }
+
+                    // Add reactions for other pitch values of the same card, if there are any
+                    card.pitchVariations().forEach { variant ->
+                        reply.addReaction(pitch_value_to_reaction_emoji[variant.pitchValue]!!)
+                    }
+                } catch (e: NoSuchElementException) {
+                    message.reply {
+                        content =
+                            "I couldn't find anything matching the name \"$name\" with pitch value $pitch"
+                    }
                 }
             }
     }
