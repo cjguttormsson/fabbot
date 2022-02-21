@@ -5,6 +5,6 @@ COPY . .
 # RUN ./gradlew build
 RUN ./gradlew installDist
 
-COPY ./build/install/ ./output/
+COPY ./build/install/fabbot/ .
 
-CMD ["./output/bin/fabbot"]
+CMD ["./bin/fabbot"]
