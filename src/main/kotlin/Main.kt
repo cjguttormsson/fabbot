@@ -1,11 +1,9 @@
-import com.github.h0tk3y.betterParse.combinators.or
-import com.github.h0tk3y.betterParse.combinators.rightAssociative
+import com.github.h0tk3y.betterParse.combinators.and
 import com.github.h0tk3y.betterParse.combinators.use
+import com.github.h0tk3y.betterParse.combinators.zeroOrMore
 import com.github.h0tk3y.betterParse.grammar.Grammar
 import com.github.h0tk3y.betterParse.grammar.parseToEnd
 import com.github.h0tk3y.betterParse.lexer.regexToken
-import com.github.h0tk3y.betterParse.parser.Parser
-import com.github.h0tk3y.betterParse.utils.Tuple2
 import dev.kord.core.Kord
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.reply
@@ -85,30 +83,23 @@ suspend fun main() {
 
 // Parse a search query, which looks like a card name that is optionally followed by a letter or
 // word to specify pitch value (eg. "wax on b")
-object QueryParser : Grammar<Tuple2<String, Int?>>() {
-    private val ws by regexToken("\\s+")
+data class SearchQuery(val cardName: String, val pitch: Int?)
 
-    private val cardNameTerm by regexToken("[^\\s]+")
-    private val pitchTerm by regexToken(query_pitch_values.keys.joinToString("|"))
-    private val eitherTerm by pitchTerm or cardNameTerm
+object QueryParser : Grammar<SearchQuery>() {
+    private val space by regexToken("\\s+")
+    private val word by regexToken("[^\\s]+")
 
-    private val idk by rightAssociative(eitherTerm use { makeTup(text) },
-        ws use { text }) { a, b, c -> combineTups(a, b, c) }
+    private val firstWords by zeroOrMore(word and space) use { joinToString("") { it.t1.text + it.t2.text } }
+    private val lastWord by word use { text }
 
-    override val rootParser: Parser<Tuple2<String, Int?>> by idk
+    override val rootParser by firstWords and lastWord use { makeQuery(t1, t2) }
 
-    private fun makeTup(match: String) = when (match.lowercase()) {
-        in query_pitch_values.keys -> Tuple2("", query_pitch_values[match.lowercase()])
-        else -> Tuple2(match, null as Int?)
-    }
-
-    private fun combineTups(
-        tup1: Tuple2<String, Int?>, sep: String, tup2: Tuple2<String, Int?>
-    ): Tuple2<String, Int?> = when (tup2.t2) {
-        null -> Tuple2(tup1.t1 + sep + tup2.t1, null)
-        else -> when (tup2.t1) {
-            "" -> Tuple2(tup1.t1, tup2.t2)
-            else -> Tuple2(tup1.t1 + sep + tup2.t1, tup2.t2)
-        }
+    // If the last word in the query is a pitch value specifier, extract it. Otherwise, add the last
+    // word back to the rest of the words.
+    private fun makeQuery(firstWords: String, lastWords: String) = when (lastWords.lowercase()) {
+        in query_pitch_values.keys -> SearchQuery(
+            firstWords.trim(), query_pitch_values[lastWords.lowercase()]
+        )
+        else -> SearchQuery(firstWords + lastWords, null as Int?)
     }
 }
