@@ -1,3 +1,11 @@
+import com.github.h0tk3y.betterParse.combinators.or
+import com.github.h0tk3y.betterParse.combinators.rightAssociative
+import com.github.h0tk3y.betterParse.combinators.use
+import com.github.h0tk3y.betterParse.grammar.Grammar
+import com.github.h0tk3y.betterParse.grammar.parseToEnd
+import com.github.h0tk3y.betterParse.lexer.regexToken
+import com.github.h0tk3y.betterParse.parser.Parser
+import com.github.h0tk3y.betterParse.utils.Tuple2
 import dev.kord.core.Kord
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.reply
@@ -39,7 +47,8 @@ suspend fun main() {
         bracket_pattern.findAll(this.message.content).flatMap { it.groupValues.drop(1) }.take(3)
             .forEach {
                 // Reply with the image of the card
-                val (name, pitch) = parseQuery(it)
+                val (name, pitch) = QueryParser.parseToEnd(it)
+                println("Searching name=$name pitch=$pitch")
                 val card = Card.search(name, pitch)
                 val reply = message.reply { content = card.imageUrl }
 
@@ -74,11 +83,32 @@ suspend fun main() {
     client.login()
 }
 
-// Turns a query into a name and a pitch value (if specified). eg. "Wax On y" -> Pair("Wax On", y)
-private fun parseQuery(query: String): Pair<String, Int?> =
-    query_pitch_values.firstNotNullOfOrNull { entry ->
-        if (query.lowercase().endsWith(entry.key)) Pair(
-            query.substring(0, query.length - entry.key.length).trim(), entry.value
-        )
-        else null
-    } ?: Pair(query, null)
+// Parse a search query, which looks like a card name that is optionally followed by a letter or
+// word to specify pitch value (eg. "wax on b")
+object QueryParser : Grammar<Tuple2<String, Int?>>() {
+    private val ws by regexToken("\\s+")
+
+    private val cardNameTerm by regexToken("[^\\s]+")
+    private val pitchTerm by regexToken(query_pitch_values.keys.joinToString("|"))
+    private val eitherTerm by pitchTerm or cardNameTerm
+
+    private val idk by rightAssociative(eitherTerm use { makeTup(text) },
+        ws use { text }) { a, b, c -> combineTups(a, b, c) }
+
+    override val rootParser: Parser<Tuple2<String, Int?>> by idk
+
+    private fun makeTup(match: String) = when (match.lowercase()) {
+        in query_pitch_values.keys -> Tuple2("", query_pitch_values[match.lowercase()])
+        else -> Tuple2(match, null as Int?)
+    }
+
+    private fun combineTups(
+        tup1: Tuple2<String, Int?>, sep: String, tup2: Tuple2<String, Int?>
+    ): Tuple2<String, Int?> = when (tup2.t2) {
+        null -> Tuple2(tup1.t1 + sep + tup2.t1, null)
+        else -> when (tup2.t1) {
+            "" -> Tuple2(tup1.t1, tup2.t2)
+            else -> Tuple2(tup1.t1 + sep + tup2.t1, tup2.t2)
+        }
+    }
+}
