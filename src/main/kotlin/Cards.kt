@@ -24,10 +24,11 @@ object Cards : IdTable<String>() {
 
     // Connect to cards.db
     init {
-        Database.connect("jdbc:sqlite:file:cards.db", "org.sqlite.JDBC")
+        Database.connect("jdbc:sqlite:file:cards.db?mode=ro", "org.sqlite.JDBC")
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
         transaction {
             SchemaUtils.createMissingTablesAndColumns(Cards)
+            println("Loaded ${selectAll().count()} cards")
         }
     }
 

@@ -13,5 +13,6 @@ RUN gradle installDist --no-daemon
 FROM openjdk:11-jre-slim
 
 COPY --from=build /home/gradle/build/install/fabbot/ .
+COPY cards.db cards.db
 
 CMD ["./bin/fabbot"]
