@@ -1,15 +1,17 @@
-FROM openjdk:19-jdk-buster
+FROM gradle:latest as build
 
-COPY gradle/ gradle/
-COPY gradlew gradlew
-COPY settings.gradle.kts settings.gradle.kts
-COPY build.gradle.kts build.gradle.kts
-COPY gradle.properties gradle.properties
+# This is the default, but there's no way to get it dynamically.
+# It's set explicitly here to ensure the final COPY command is correct.
+WORKDIR /home/gradle
+
 COPY src/ src/
+COPY cards.db settings.gradle.kts build.gradle.kts gradle.properties ./
 
-# RUN ./gradlew build
-RUN ./gradlew installDist
+RUN gradle build --no-daemon
+RUN gradle installDist --no-daemon
 
-COPY ./build/install/fabbot/ .
+FROM openjdk:11-jre-slim
+
+COPY --from=build /home/gradle/build/install/fabbot/ .
 
 CMD ["./bin/fabbot"]
