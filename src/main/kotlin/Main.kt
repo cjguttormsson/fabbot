@@ -4,14 +4,21 @@ import com.github.h0tk3y.betterParse.combinators.zeroOrMore
 import com.github.h0tk3y.betterParse.grammar.Grammar
 import com.github.h0tk3y.betterParse.grammar.parseToEnd
 import com.github.h0tk3y.betterParse.lexer.regexToken
+import com.willowtreeapps.fuzzywuzzy.diffutils.FuzzySearch
+import dev.kord.common.entity.string
 import dev.kord.core.Kord
 import dev.kord.core.behavior.edit
+import dev.kord.core.behavior.interaction.respondPublic
+import dev.kord.core.behavior.interaction.suggestString
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.gateway.ReadyEvent
+import dev.kord.core.event.interaction.AutoCompleteInteractionCreateEvent
+import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.message.ReactionAddEvent
 import dev.kord.core.on
+import dev.kord.rest.builder.interaction.StringChoiceBuilder
 import kotlinx.coroutines.flow.count
 import java.lang.System.getenv
 
@@ -39,7 +46,7 @@ suspend fun main() {
     // Handle incoming messages
     client.on<MessageCreateEvent> {
         // Don't respond to ourselves
-        if (this.message.author?.id == client.selfId) return@on
+        if (message.author?.id == client.selfId) return@on
 
         // Respond to up to three search terms in a message
         bracket_pattern.findAll(this.message.content).flatMap { it.groupValues.drop(1) }.take(3)
@@ -67,21 +74,61 @@ suspend fun main() {
 
     // Handle reactions to the bot's messages
     client.on<ReactionAddEvent> {
+        val message = getMessage()
         // Don't handle our own reactions, or reactions to messages other than ours
-        if (this.userId == client.selfId || this.getMessage().author?.id != client.selfId) return@on
+        if (userId == client.selfId || message.author?.id != client.selfId) return@on
 
         // Handle pitch reactions
-        if (this.emoji in reaction_emoji_to_pitch_value) {
-            val targetCost = reaction_emoji_to_pitch_value[this.emoji]!!
-            val currentCard = Card.fromImageUrl(getMessage().content)
+        if (emoji in reaction_emoji_to_pitch_value) {
+            val targetCost = reaction_emoji_to_pitch_value[emoji]!!
+            val currentCard = Card.fromImageUrl(message.content)
             val targetCard = currentCard?.let { Card.search(it.name, targetCost) }
 
             // Update the message text to refer to the new card, and correct the reactions.
             targetCard?.let {
-                this.getMessage().edit { content = it.imageUrl }
-                this.getMessage().deleteReaction(this.emoji)
-                this.getMessage()
-                    .addReaction(pitch_value_to_reaction_emoji[currentCard.pitchValue]!!)
+                message.edit { content = it.imageUrl }
+                message.deleteReaction(this.emoji)
+                message.addReaction(pitch_value_to_reaction_emoji[currentCard.pitchValue]!!)
+            }
+        }
+    }
+
+    client.createGlobalChatInputCommand(
+        "get-card", "Displays the image for a Flesh and Blood card, given its name"
+    ) {
+        options = mutableListOf(StringChoiceBuilder(
+            "card-name", "The name of the card"
+        ).apply {
+            required = true
+            autocomplete = true
+        }, StringChoiceBuilder(
+            "pitch-value", "(optional) the specific pitch value to display"
+        ).apply {
+            choice("Red", "1")
+            choice("Yellow", "2")
+            choice("Blue", "3")
+            required = false
+        })
+    }
+
+    client.on<ChatInputCommandInteractionCreateEvent> {
+        interaction.respondPublic {
+            val interactionData = interaction.data.data.options.value
+            val cardName = interactionData?.find { it.name == "card-name" }?.value?.value?.string()
+            val pitch = interactionData?.find { it.name == "pitch-value" }?.value?.value?.string()
+            content = Card.search(cardName!!, pitch = pitch?.toInt()).imageUrl
+        }
+    }
+
+    client.on<AutoCompleteInteractionCreateEvent> {
+        interaction.suggestString {
+            // The only registered autocomplete is for the card name, so we can assume we have it
+            val partialCardName =
+                interaction.data.data.options.value?.find { it.name == "card-name" }?.value?.value?.string()!!
+
+            // Suggest up to five card names, based on the top results from a fuzzy text search
+            FuzzySearch.extractTop(partialCardName, Cards.allNames, 5).forEach {
+                choice(it.string!!, it.string!!)
             }
         }
     }
