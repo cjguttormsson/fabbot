@@ -105,8 +105,17 @@ suspend fun main() {
             "pitch-value", "(optional) the specific pitch value to display"
         ).apply {
             choice("Red", "1")
+            choice("1", "1")
+            choice("one", "1")
+
             choice("Yellow", "2")
+            choice("2", "2")
+            choice("two", "2")
+
             choice("Blue", "3")
+            choice("3", "3")
+            choice("three", "3")
+
             required = false
         })
     }
