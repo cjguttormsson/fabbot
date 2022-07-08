@@ -14,7 +14,6 @@ repositories {
 }
 
 val exposedVersion: String by project
-val ktorVersion: String by project
 dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testImplementation(kotlin("test"))
@@ -26,8 +25,6 @@ dependencies {
     implementation("com.willowtreeapps:fuzzywuzzy-kotlin:0.9.0")
     implementation("com.github.h0tk3y.betterParse:better-parse:0.4.4")
     implementation("org.slf4j:slf4j-simple:1.7.36")
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
 }
 
 tasks.test {

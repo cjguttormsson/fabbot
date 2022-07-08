@@ -19,11 +19,6 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.event.message.ReactionAddEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.interaction.StringChoiceBuilder
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import kotlinx.coroutines.flow.count
 import java.lang.System.getenv
 
@@ -41,15 +36,6 @@ val reaction_emoji_to_pitch_value =
     pitch_value_to_reaction_emoji.entries.associate { (k, v) -> v to k }
 
 suspend fun main() {
-    // For Cloud Run, start a dummy web server in the background to keep the bot alive
-    embeddedServer(Netty, port = 8080) {
-        routing {
-            get("/") {
-                call.respondText("Hello, world!")
-            }
-        }
-    }.start(wait = false)
-
     val client = Kord(getenv("DISCORD_BOT_KEY"))
 
     client.on<ReadyEvent> {
